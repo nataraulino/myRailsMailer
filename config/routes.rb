@@ -1,5 +1,9 @@
 Rails.application.routes.draw do
-  resources :clientes
+  resources :clientes do
+    collection do
+      post "csv"
+    end
+  end
   root "clientes#index"
   
   # The priority is based upon order of creation: first created -> highest priority.

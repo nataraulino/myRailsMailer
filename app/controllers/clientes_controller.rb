@@ -1,6 +1,6 @@
 class ClientesController < ApplicationController
   before_action :set_cliente, only: [:show, :edit, :update, :destroy]
-
+  require 'csv'
   # GET /clientes
   # GET /clientes.json
   def index
@@ -21,16 +21,32 @@ class ClientesController < ApplicationController
   def edit
   end
 
+  def csv
+    
+  end
+
   # POST /clientes
   # POST /clientes.json
   def create
-    @cliente = Cliente.new(cliente_params)
+    @nome = params[:clientes][:nome_arquivo].original_filename
+    @arquivo = params[:clientes][:nome_arquivo].tempfile
+    @upload = CSV.table(@arquivo, :col_sep => ';')
+    @upload.each do |row|
+      @cliente = Cliente.create(
+        nome: row.fetch(:nome),
+        email: row.fetch(:email),
+        contrato: row.fetch(:contrato),
+        valor: row.fetch(:valor),
+        vencimento: row.fetch(:vencimento)
+        )
+      Signup.confirma_email(@cliente).deliver
+    end
 
     respond_to do |format|
       if @cliente.save
         format.html { redirect_to @cliente, notice: 'Cliente was successfully created.' }
         format.json { render :show, status: :created, location: @cliente }
-        Signup.confirma_email(@cliente).deliver
+        
       else
         format.html { render :new }
         format.json { render json: @cliente.errors, status: :unprocessable_entity }
